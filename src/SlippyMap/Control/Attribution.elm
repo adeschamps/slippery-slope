@@ -7,6 +7,8 @@ module SlippyMap.Control.Attribution exposing (control)
 -}
 
 import Html exposing (Html)
+import Html.Attributes
+import Json.Encode
 import SlippyMap.Config as Config
 import SlippyMap.Layer exposing (Layer)
 import SlippyMap.Layer.Control as Control
@@ -27,5 +29,4 @@ render attributions map =
                 |> Maybe.map (\p -> p ++ " | ")
                 |> Maybe.withDefault ""
     in
-    Html.div []
-        [ Html.text (prefixText ++ String.join ", " attributions) ]
+    Html.div [ Html.Attributes.property "innerHTML" <| Json.Encode.string <| prefixText ++ String.join ", " attributions ] []
