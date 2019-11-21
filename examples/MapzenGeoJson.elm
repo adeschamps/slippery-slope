@@ -1,4 +1,4 @@
-module MapzenGeoJson exposing (..)
+module MapzenGeoJson exposing (Feature, FeatureProperties, Model, Msg(..), TileCache, decodeProperties, getTile, init, initialLayerConfig, isInteresting, layerConfig, layerStyles, main, mapConfig, namedGeoJsonFeatureObjectToFeature, namedGeoJsonObjectToFeatures, namedGeoJsonToFeatures, newTilesToLoad, propertiesDecoder, renderFeature, sortFeatures, subscriptions, toFeatures, update, vectorTileDecoder, view)
 
 import Dict exposing (Dict)
 import GeoJson exposing (GeoJson)
@@ -8,16 +8,16 @@ import Http
 import Json.Decode as Json
 import RemoteData exposing (WebData)
 import Set exposing (Set)
+import SlippyMap.Bundle.Interactive as Map
+import SlippyMap.Config as MapConfig
 import SlippyMap.Geo.CRS.Stereographic as CRS
 import SlippyMap.Geo.Point as Point exposing (Point)
 import SlippyMap.Geo.Tile as Tile exposing (Tile)
 import SlippyMap.GeoJson.Svg as RenderGeoJson
-import SlippyMap.Interactive as Map
 import SlippyMap.Layer as Layer
 import SlippyMap.Layer.RemoteTile as RemoteTile
-import SlippyMap.Map.Config as MapConfig
-import SlippyMap.Map.Map as Map exposing (Map)
-import SlippyMap.Map.Transform as Transform
+import SlippyMap.Map as Map exposing (Map)
+import SlippyMap.Transform as Transform
 import Svg exposing (Svg)
 import Svg.Attributes
 
@@ -312,6 +312,7 @@ isInteresting ( groupName, geojson ) =
     if groupName == "earth" || groupName /= "water" then
         -- if groupName == "roads" then
         Just ( groupName, geojson )
+
     else
         Nothing
 

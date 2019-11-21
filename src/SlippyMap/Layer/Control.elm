@@ -1,12 +1,4 @@
-module SlippyMap.Layer.Control
-    exposing
-        ( Config
-        , bottomLeft
-        , bottomRight
-        , control
-        , topLeft
-        , topRight
-        )
+module SlippyMap.Layer.Control exposing (Config, bottomLeft, bottomRight, control, topLeft, topRight)
 
 {-| A layer tor create custom controls.
 
@@ -20,6 +12,7 @@ import SlippyMap.Layer as Layer exposing (Layer)
 import SlippyMap.Map exposing (Map)
 
 
+
 -- CONFIG
 
 
@@ -28,7 +21,7 @@ import SlippyMap.Map exposing (Map)
 type Config msg
     = Config
         { position : Position
-        , render : Map msg -> Html msg
+        , renderer : Map msg -> Html msg
         }
 
 
@@ -43,14 +36,14 @@ config : Position -> Config msg
 config position =
     Config
         { position = position
-        , render = always (Html.text "")
+        , renderer = always (Html.text "")
         }
 
 
 withRenderer : (Map msg -> Html msg) -> Config msg -> Config msg
-withRenderer renderer (Config config) =
+withRenderer renderer (Config cfg) =
     Config
-        { config | render = renderer }
+        { cfg | renderer = renderer }
 
 
 {-| -}
@@ -79,20 +72,20 @@ bottomRight =
 
 {-| -}
 control : Config msg -> (Map msg -> Html msg) -> Layer msg
-control config renderer =
+control cfg renderer =
     Layer.custom
-        (render (withRenderer renderer config))
+        (render (withRenderer renderer cfg))
         Layer.control
 
 
 {-| -}
 render : Config msg -> Map msg -> Html msg
-render (Config { position, render }) map =
-    Html.div [ positionStyle position ]
-        [ render map ]
+render (Config { position, renderer }) map =
+    Html.div (positionStyle position)
+        [ renderer map ]
 
 
-positionStyle : Position -> Html.Attribute msg
+positionStyle : Position -> List (Html.Attribute msg)
 positionStyle position =
     let
         baseProperties =
@@ -120,5 +113,4 @@ positionStyle position =
                     , ( "left", "0" )
                     ]
     in
-    Html.Attributes.style
-        (baseProperties ++ positionProperties)
+    (baseProperties ++ positionProperties) |> List.map (\( key, value ) -> Html.Attributes.style key value)

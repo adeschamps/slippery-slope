@@ -1,13 +1,4 @@
-module SlippyMap.Types
-    exposing
-        ( Drag
-        , Focus(..)
-        , Interaction(..)
-        , Pinch
-        , Scene
-        , Size
-        , Transition(..)
-        )
+module SlippyMap.Types exposing (Drag, Focus(..), Interaction(..), Pinch, Scene, Size, Transition(..))
 
 {-|
 
@@ -15,9 +6,9 @@ module SlippyMap.Types
 
 -}
 
-import Mouse exposing (Position)
+import Bandaid exposing (Position)
 import SlippyMap.Geo.Location exposing (Location)
-import Time exposing (Time)
+import Time exposing (Posix)
 
 
 {-| -}
@@ -41,14 +32,14 @@ type Transition
     | MoveTo
         { fromScene : Scene
         , toScene : Scene
-        , duration : Time
-        , elapsed : Time
+        , duration : Float
+        , elapsed : Float
         }
     | FlyTo
         { fromScene : Scene
         , toScene : Scene
-        , duration : Time
-        , elapsed : Time
+        , duration : Float
+        , elapsed : Float
         }
 
 

@@ -1,9 +1,4 @@
-module SlippyMap.Msg
-    exposing
-        ( DragMsg(..)
-        , Msg(..)
-        , PinchMsg(..)
-        )
+module SlippyMap.Msg exposing (Msg(..), DragMsg(..), PinchMsg(..))
 
 {-| Messages for map state updates.
 
@@ -11,11 +6,11 @@ module SlippyMap.Msg
 
 -}
 
-import Keyboard exposing (KeyCode)
-import Mouse exposing (Position)
+-- import Keyboard exposing (KeyCode)
+
+import Bandaid exposing (KeyCode, Position)
 import SlippyMap.Geo.Point exposing (Point)
 import SlippyMap.Types exposing (Focus)
-import Time exposing (Time)
 
 
 {-| -}
@@ -28,7 +23,7 @@ type Msg
     | PinchMsg PinchMsg
     | SetFocus Focus
     | KeyboardNavigation KeyCode
-    | Tick Time
+    | Tick Float
 
 
 {-| -}

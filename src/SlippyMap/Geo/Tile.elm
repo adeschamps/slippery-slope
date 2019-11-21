@@ -1,4 +1,4 @@
-module SlippyMap.Geo.Tile exposing (Comparable, Tile, children, cover, fromComparable, normalize, toComparable)
+module SlippyMap.Geo.Tile exposing (Tile, Comparable, toComparable, fromComparable, cover, children, normalize)
 
 {-|
 
@@ -47,8 +47,8 @@ coordinateToTile { column, row, zoom } =
 normalize : Tile -> Tile
 normalize { z, x, y } =
     { z = z
-    , x = x % (2 ^ z)
-    , y = y % (2 ^ z)
+    , x = x |> modBy (2 ^ z)
+    , y = y |> modBy (2 ^ z)
     }
 
 
@@ -105,6 +105,7 @@ triangleCover ( c1, c2, c3 ) =
             && (c3Tile.y - c1Tile.y |> abs |> (>=) 1)
     then
         [ c1Tile, c2Tile, c3Tile ]
+
     else
         triangleCover ( c1c2Center, c2c3Center, c3c1Center )
             ++ triangleCover ( c1, c1c2Center, c3c1Center )
@@ -130,5 +131,6 @@ uniqueHelp f existing remaining =
             in
             if Set.member computedFirst existing then
                 uniqueHelp f existing rest
+
             else
                 first :: uniqueHelp f (Set.insert computedFirst existing) rest

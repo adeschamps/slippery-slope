@@ -15,9 +15,10 @@ import SlippyMap.Geo.Tile as Tile exposing (Tile)
 import SlippyMap.GeoJson.Svg as Render
 import SlippyMap.Layer as Layer exposing (Layer)
 import SlippyMap.Layer.Tile as TileLayer
-import SlippyMap.Map.Transform as Transform exposing (Transform)
+import SlippyMap.Transform as Transform exposing (Transform)
 import Svg exposing (Svg)
 import Svg.Attributes
+
 
 
 -- LAYER
@@ -32,7 +33,7 @@ layer =
 {-| TODO: think about how to make it not always depend on Transform.
 -}
 tile : Transform -> Tile -> Svg msg
-tile transform ({ z, x, y } as tile) =
+tile transform { z, x, y } =
     let
         scale =
             transform.crs.scale transform.zoom / transform.crs.scale (toFloat z)
@@ -124,8 +125,8 @@ tile transform ({ z, x, y } as tile) =
             , Svg.Attributes.stroke "#ffff00"
             , Svg.Attributes.x "0"
             , Svg.Attributes.y "0"
-            , Svg.Attributes.width (toString size)
-            , Svg.Attributes.height (toString size)
+            , Svg.Attributes.width (String.fromInt size)
+            , Svg.Attributes.height (String.fromInt size)
             ]
             []
         , Render.renderGeoJson (renderConfig project)
@@ -150,7 +151,4 @@ style { properties } =
 
 renderConfig : (GeoJson.Position -> Point) -> Render.Config msg
 renderConfig project =
-    Render.Config
-        { project = project
-        , style = style
-        }
+    Render.config project

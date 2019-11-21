@@ -1,19 +1,7 @@
-module SlippyMap.Transform
-    exposing
-        ( Transform
-        , Transformer
-        , locationToPoint
-        , locationToScreenPoint
-        , origin
-        , pointToLocation
-        , scaleT
-        , scaleZ
-        , screenPointToLocation
-        , tileCover
-        , transform
-        , transformer
-        , zoom
-        )
+module SlippyMap.Transform exposing
+    ( Transform, Transformer, locationToPoint, locationToScreenPoint, pointToLocation, transformer, screenPointToLocation, origin, tileCover, scaleT, scaleZ, zoom
+    , new
+    )
 
 {-|
 
@@ -39,13 +27,13 @@ type Transform
 
 
 {-| -}
-transform : CRS -> Point -> Scene -> Transform
-transform crs size { center, zoom } =
+new : CRS -> Point -> Scene -> Transform
+new crs_ size_ scene_ =
     Transform
-        { size = size
-        , crs = crs
-        , center = center
-        , zoom = zoom
+        { size = size_
+        , crs = crs_
+        , center = scene_.center
+        , zoom = scene_.zoom
         }
 
 
@@ -67,10 +55,10 @@ type alias Transformer =
 
 {-| -}
 transformer : CRS -> Point -> Scene -> Transformer
-transformer crs size scene =
+transformer crs_ size_ scene_ =
     let
         t =
-            transform crs size scene
+            new crs_ size_ scene_
     in
     { origin = origin t
     , bounds = bounds t
@@ -217,6 +205,7 @@ tileCoverHelp : Transform -> Tile -> List Tile
 tileCoverHelp transform parentTile =
     if zoom transform <= toFloat parentTile.z then
         []
+
     else
         let
             visibleChildren =
@@ -225,6 +214,7 @@ tileCoverHelp transform parentTile =
                         (\tile ->
                             if isVisible transform tile then
                                 Just tile
+
                             else
                                 Nothing
                         )

@@ -1,19 +1,4 @@
-module SlippyMap.Layer
-    exposing
-        ( Config
-        , Layer
-        , attributions
-        , base
-        , control
-        , custom
-        , flatten
-        , group
-        , marker
-        , overlay
-        , popup
-        , render
-        , withAttribution
-        )
+module SlippyMap.Layer exposing (Config, marker, popup, overlay, base, control, Layer, custom, group, withAttribution, attributions, flatten, render)
 
 {-| A `Layer` usually renders geolocated contents on top of a map.
 
@@ -153,11 +138,11 @@ type Layer msg
 {-| TODO: rename
 -}
 custom : (Map msg -> Html msg) -> Config msg -> Layer msg
-custom render (Config config) =
+custom renderer (Config config) =
     Layer Nothing <|
         Config
             { config
-                | renderer = Renderer render
+                | renderer = Renderer renderer
             }
 
 
@@ -194,7 +179,7 @@ flatten : List (Layer msg) -> List (Layer msg)
 flatten layers =
     layers
         |> List.concatMap flattenHelp
-        |> List.sortBy level
+        |> List.sortBy getLevel
 
 
 flattenHelp : Layer msg -> List (Layer msg)
@@ -207,8 +192,8 @@ flattenHelp layer =
             List.concatMap flattenHelp layers
 
 
-level : Layer msg -> Int
-level layer =
+getLevel : Layer msg -> Int
+getLevel layer =
     case layer of
         Layer _ (Config { pane }) ->
             paneToLevel pane

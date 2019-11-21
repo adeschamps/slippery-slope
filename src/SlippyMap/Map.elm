@@ -1,25 +1,4 @@
-module SlippyMap.Map
-    exposing
-        ( Map
-        , bounds
-        , center
-        , config
-        , crs
-        , locationBounds
-        , locationToPoint
-        , locationToPointRelativeTo
-        , locationToScreenPoint
-        , make
-        , origin
-        , pointToLocation
-        , scaleT
-        , scaleZ
-        , screenPointToLocation
-        , size
-        , state
-        , tileCover
-        , zoom
-        )
+module SlippyMap.Map exposing (Map, make, bounds, locationBounds, center, crs, locationToPoint, locationToPointRelativeTo, locationToScreenPoint, origin, pointToLocation, scaleT, scaleZ, screenPointToLocation, size, tileCover, zoom, config, state)
 
 {-|
 
@@ -47,20 +26,17 @@ type Map msg
 
 {-| -}
 make : Config msg -> State -> Map msg
-make config state =
+make withConfig withState =
     let
-        ( crs, size, scene ) =
-            ( Config.crs config
-            , Config.size config
-            , State.getScene state
-            )
-
         transformer =
-            Transform.transformer crs size scene
+            Transform.transformer
+                (Config.crs withConfig)
+                (Config.size withConfig)
+                (State.getScene withState)
     in
     Map
-        { config = config
-        , state = state
+        { config = withConfig
+        , state = withState
         , transformer = transformer
         }
 
@@ -79,14 +55,14 @@ crs =
 
 {-| -}
 config : Map msg -> Config msg
-config (Map { config }) =
-    config
+config (Map map) =
+    map.config
 
 
 {-| -}
 state : Map msg -> State
-state (Map { state }) =
-    state
+state (Map map) =
+    map.state
 
 
 {-| -}

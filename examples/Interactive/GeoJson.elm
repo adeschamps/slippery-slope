@@ -1,5 +1,6 @@
-module Interactive.GeoJson exposing (..)
+module Interactive.GeoJson exposing (Model, Msg(..), config, init, main, myGeoJson, subscriptions, update, view)
 
+import Browser
 import Data.Simplestyle
 import GeoJson exposing (GeoJson)
 import Html exposing (Html)
@@ -20,24 +21,26 @@ type Msg
 
 init : ( Model, Cmd Msg )
 init =
-    { map =
-        Map.at config
-            { center = Location 5 50
-            , zoom = 3
-            }
-    }
-        ! []
+    ( { map =
+            Map.at config
+                { center = Location 5 50
+                , zoom = 3
+                }
+      }
+    , Cmd.none
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         MapMsg mapMsg ->
-            { model
+            ( { model
                 | map =
                     Map.update config mapMsg model.map
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
 
 config : Map.Config Msg
@@ -53,8 +56,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     Html.div
-        [ Html.Attributes.style
-            [ ( "padding", "1.5rem" ) ]
+        [ Html.Attributes.style "padding" "1.5rem"
         ]
         [ Html.h1 []
             [ Html.text "Map with GeoJson" ]
@@ -67,10 +69,10 @@ view model =
         ]
 
 
-main : Program Never Model Msg
+main : Program () Model Msg
 main =
-    Html.program
-        { init = init
+    Browser.element
+        { init = \_ -> init
         , view = view
         , update = update
         , subscriptions = subscriptions

@@ -1,19 +1,7 @@
-module SlippyMap.Layer.Marker.Circle
-    exposing
-        ( Config
-        , customMarker
-        , icon
-        , individualMarker
-        , marker
-        , on
-        , onClick
-        , withFill
-        , withFillOpacity
-        , withRadius
-        , withStroke
-        , withStrokeOpacity
-        , withStrokeWidth
-        )
+module SlippyMap.Layer.Marker.Circle exposing
+    ( marker
+    , customMarker, individualMarker, icon, withRadius, withFill, withFillOpacity, withStroke, withStrokeWidth, withStrokeOpacity, Config, onClick
+    )
 
 {-| A layer to display circle markers.
 
@@ -119,24 +107,24 @@ on name toDecoder =
 {-| -}
 onClick : (marker -> msg) -> marker -> Event marker msg
 onClick toMessage _ =
-    on "click" (\marker -> Json.Decode.map toMessage (Json.Decode.succeed marker))
+    on "click" (\mark -> Json.Decode.map toMessage (Json.Decode.succeed mark))
 
 
 renderIcon : Config marker msg -> Svg msg
 renderIcon (Config config) =
     Svg.circle
         [ Svg.Attributes.r
-            (toString config.radius)
+            (String.fromFloat config.radius)
         , Svg.Attributes.fill
             config.fill
         , Svg.Attributes.fillOpacity
-            (toString config.fillOpacity)
+            (String.fromFloat config.fillOpacity)
         , Svg.Attributes.stroke
             config.stroke
         , Svg.Attributes.strokeWidth
-            (toString config.strokeWidth)
+            (String.fromFloat config.strokeWidth)
         , Svg.Attributes.strokeOpacity
-            (toString config.strokeOpacity)
+            (String.fromFloat config.strokeOpacity)
         ]
         []
 

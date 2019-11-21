@@ -6,9 +6,9 @@ module SlippyMap.Subscriptions exposing (subscriptions)
 
 -}
 
-import AnimationFrame
-import Keyboard
-import Mouse
+import Bandaid exposing (decodeKey, decodePosition)
+import Browser.Events
+import Json.Decode as Decode
 import SlippyMap.Config as Config exposing (Config(..))
 import SlippyMap.Msg exposing (DragMsg(..), Msg(..))
 import SlippyMap.State as State exposing (State(..))
@@ -22,9 +22,9 @@ subscriptions config state =
         Just toMsg ->
             let
                 ( interaction, focus, transition ) =
-                    ( State.interaction state
-                    , State.focus state
-                    , State.transition state
+                    ( State.getInteraction state
+                    , State.getFocus state
+                    , State.getTransition state
                     )
 
                 dragSubscriptions =
@@ -36,14 +36,14 @@ subscriptions config state =
                             []
 
                         Dragging _ ->
-                            [ Mouse.moves (DragAt >> DragMsg)
-                            , Mouse.ups (DragEnd >> DragMsg)
+                            [ Browser.Events.onMouseMove (decodePosition |> Decode.map (DragAt >> DragMsg))
+                            , Browser.Events.onMouseUp (decodePosition |> Decode.map (DragEnd >> DragMsg))
                             ]
 
                 keyboardNavigationSubscriptions =
                     case focus of
                         HasFocus ->
-                            [ Keyboard.downs KeyboardNavigation ]
+                            [ Browser.Events.onKeyDown (decodeKey |> Decode.map KeyboardNavigation) ]
 
                         HasNoFocus ->
                             []
@@ -54,10 +54,10 @@ subscriptions config state =
                             []
 
                         MoveTo _ ->
-                            [ AnimationFrame.diffs Tick ]
+                            [ Browser.Events.onAnimationFrameDelta Tick ]
 
                         FlyTo _ ->
-                            [ AnimationFrame.diffs Tick ]
+                            [ Browser.Events.onAnimationFrameDelta Tick ]
             in
             (dragSubscriptions
                 ++ keyboardNavigationSubscriptions

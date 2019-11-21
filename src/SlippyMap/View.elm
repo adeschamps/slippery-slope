@@ -6,11 +6,11 @@ module SlippyMap.View exposing (view, viewWithEvents)
 
 -}
 
+import Bandaid exposing (Position, decodePosition)
 import Html exposing (Html)
 import Html.Attributes
 import Html.Events
 import Json.Decode as Decode exposing (Decoder)
-import Mouse exposing (Position)
 import SlippyMap.Config as Config exposing (Config(..))
 import SlippyMap.Control.Attribution as Attribution
 import SlippyMap.Control.Zoom as Zoom
@@ -41,7 +41,7 @@ viewWithEvents config state events nestedLayers =
     let
         ( _, interaction ) =
             ( State.getScene state
-            , State.interaction state
+            , State.getInteraction state
             )
 
         map =
@@ -64,6 +64,7 @@ viewWithEvents config state events nestedLayers =
                 Just toMsg ->
                     if Config.zoomControl config then
                         [ Zoom.control (Zoom.config toMsg) ]
+
                     else
                         []
 
@@ -108,12 +109,10 @@ viewWithEvents config state events nestedLayers =
                 events
     in
     ( Html.div
-        ([ Html.Attributes.style
-            [ ( "position", "relative" )
-            , ( "width", toString size.x ++ "px" )
-            , ( "height", toString size.y ++ "px" )
-            , ( "background", "#eee" )
-            ]
+        ([ Html.Attributes.style "position" "relative"
+         , Html.Attributes.style "width" (String.fromFloat size.x ++ "px")
+         , Html.Attributes.style "height" (String.fromFloat size.y ++ "px")
+         , Html.Attributes.style "background" "#eee"
          , Html.Attributes.classList
             [ ( "with-interaction", interaction /= Types.NoInteraction ) ]
          ]
@@ -140,25 +139,21 @@ viewWithEvents config state events nestedLayers =
           -}
           Html.div
             [ Html.Attributes.class "esm__map"
-            , Html.Attributes.style
-                [ ( "position", "absolute" )
-                , ( "overflow", "hidden" )
-                , ( "width", toString size.x ++ "px" )
-                , ( "height", toString size.y ++ "px" )
-                ]
+            , Html.Attributes.style "position" "absolute"
+            , Html.Attributes.style "overflow" "hidden"
+            , Html.Attributes.style "width" (String.fromFloat size.x ++ "px")
+            , Html.Attributes.style "height" (String.fromFloat size.y ++ "px")
             ]
             (List.map
                 (\layer ->
                     Html.div
                         [ Html.Attributes.class "esm__layer"
-                        , Html.Attributes.style
-                            [ ( "position", "absolute" )
-                            , ( "left", "0" )
-                            , ( "top", "0" )
-                            , ( "width", toString size.x ++ "px" )
-                            , ( "height", toString size.y ++ "px" )
-                            , ( "pointer-events", "none" )
-                            ]
+                        , Html.Attributes.style "position" "absolute"
+                        , Html.Attributes.style "left" "0"
+                        , Html.Attributes.style "top" "0"
+                        , Html.Attributes.style "width" (String.fromFloat size.x ++ "px")
+                        , Html.Attributes.style "height" (String.fromFloat size.y ++ "px")
+                        , Html.Attributes.style "pointer-events" "none"
                         ]
                         [ Layer.render map layer ]
                 )
@@ -174,17 +169,22 @@ eventAttributes pointerPositionDecoder interactions =
     let
         scrollWheelZoom =
             if interactions.scrollWheelZoom then
-                [ Html.Events.onWithOptions "wheel"
-                    { preventDefault = True
-                    , stopPropagation = True
-                    }
+                [ Html.Events.custom "wheel"
                     (Decode.map2 (\offset point -> ZoomByAround offset point)
                         (Decode.field "deltaY" Decode.float
                             |> Decode.map (\y -> -y / 100)
                         )
                         pointerPositionDecoder
+                        |> Decode.map
+                            (\msg ->
+                                { message = msg
+                                , preventDefault = True
+                                , stopPropagation = True
+                                }
+                            )
                     )
                 ]
+
             else
                 []
 
@@ -193,6 +193,7 @@ eventAttributes pointerPositionDecoder interactions =
                 [ Html.Events.on "dblclick"
                     (Decode.map ZoomInAround pointerPositionDecoder)
                 ]
+
             else
                 []
 
@@ -202,6 +203,7 @@ eventAttributes pointerPositionDecoder interactions =
                 , Html.Events.onBlur (SetFocus HasNoFocus)
                 , Html.Attributes.tabindex 0
                 ]
+
             else
                 []
     in
@@ -210,12 +212,17 @@ eventAttributes pointerPositionDecoder interactions =
         , doubleClickZoom
         , keyboardControl
         , [ Html.Events.on "mousedown"
-                (Decode.map (DragStart >> DragMsg) Mouse.position)
-          , Html.Events.onWithOptions "touchstart"
-                { preventDefault = True
-                , stopPropagation = False
-                }
-                (Decode.map touchesStartMsg touchesDecoder)
+                (Decode.map (DragStart >> DragMsg) decodePosition)
+          , Html.Events.custom "touchstart"
+                (Decode.map touchesStartMsg touchesDecoder
+                    |> Decode.map
+                        (\msg ->
+                            { message = msg
+                            , preventDefault = True
+                            , stopPropagation = False
+                            }
+                        )
+                )
           , Html.Events.on "touchmove"
                 (Decode.map touchesMoveMsg touchesDecoder)
           , Html.Events.on "touchend"
@@ -276,7 +283,7 @@ tapDecoder =
 
 pinchDecoder : Decoder ( Position, Position )
 pinchDecoder =
-    Decode.map2 (,)
+    Decode.map2 (\a b -> ( a, b ))
         (tapDecoderAt 0)
         (tapDecoderAt 1)
 
@@ -284,9 +291,9 @@ pinchDecoder =
 tapDecoderAt : Int -> Decoder Position
 tapDecoderAt index =
     Decode.map2 Position
-        (Decode.at [ "touches", toString index, "clientX" ] Decode.float
+        (Decode.at [ "touches", String.fromInt index, "clientX" ] Decode.float
             |> Decode.andThen (round >> Decode.succeed)
         )
-        (Decode.at [ "touches", toString index, "clientY" ] Decode.float
+        (Decode.at [ "touches", String.fromInt index, "clientY" ] Decode.float
             |> Decode.andThen (round >> Decode.succeed)
         )

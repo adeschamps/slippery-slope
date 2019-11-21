@@ -1,5 +1,6 @@
-module Interactive.Simple exposing (..)
+module Interactive.Simple exposing (Model, Msg(..), config, init, main, subscriptions, update, view)
 
+import Browser
 import Html exposing (Html)
 import Html.Attributes
 import SlippyMap.Bundle.Interactive as Map
@@ -16,26 +17,28 @@ type Msg
 
 init : ( Model, Cmd Msg )
 init =
-    { map =
-        Map.at config
-            { center = Location 0 0
-            , zoom = 3
-            }
-    }
-        ! []
+    ( { map =
+            Map.at config
+                { center = Location 0 0
+                , zoom = 3
+                }
+      }
+    , Cmd.none
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         MapMsg mapMsg ->
-            { model
+            ( { model
                 | map =
                     Map.update config
                         mapMsg
                         model.map
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
 
 config : Map.Config Msg
@@ -51,23 +54,22 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     Html.div
-        [ Html.Attributes.style
-            [ ( "padding", "1.5rem" ) ]
+        [ Html.Attributes.style "padding" "1.5rem"
         ]
         [ Html.h1 []
             [ Html.text "Simple interactive map" ]
         , Map.view config
             model.map
-            [ Map.tileLayer "http://localhost:9000/styles/positron/{z}/{x}/{y}.png"
+            [ Map.tileLayer "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
                 |> Map.withAttribution "© OpenMapTiles © OpenStreetMap contributors"
             ]
         ]
 
 
-main : Program Never Model Msg
+main : Program () Model Msg
 main =
-    Html.program
-        { init = init
+    Browser.element
+        { init = \_ -> init
         , view = view
         , update = update
         , subscriptions = subscriptions

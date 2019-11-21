@@ -1,9 +1,4 @@
-module SlippyMap.Layer.Marker
-    exposing
-        ( Config
-        , config
-        , layer
-        )
+module SlippyMap.Layer.Marker exposing (Config, config, layer)
 
 {-| A layer to display markers.
 
@@ -11,6 +6,7 @@ module SlippyMap.Layer.Marker
 
 -}
 
+import Json.Decode
 import SlippyMap.Events exposing (Event)
 import SlippyMap.Geo.Location exposing (Location)
 import SlippyMap.Layer as Layer exposing (Layer)
@@ -18,6 +14,7 @@ import SlippyMap.Map as Map exposing (Map)
 import Svg exposing (Svg)
 import Svg.Attributes
 import VirtualDom
+
 
 
 -- CONFIG
@@ -45,14 +42,14 @@ config toLocation toIcon toEvents =
 
 {-| -}
 layer : Config marker msg -> List marker -> Layer msg
-layer config markers =
+layer cfg markers =
     Layer.marker
-        |> Layer.custom (render config markers)
+        |> Layer.custom (render cfg markers)
 
 
 {-| -}
 render : Config marker msg -> List marker -> Map msg -> Svg msg
-render ((Config { location }) as config) markers map =
+render ((Config { location }) as cfg) markers map =
     let
         locatedMarkers =
             List.map
@@ -69,11 +66,11 @@ render ((Config { location }) as config) markers map =
         , Svg.Attributes.height "100%"
         , Svg.Attributes.style "position: absolute;"
         ]
-        (List.map (marker config map) locatedMarkersFiltered)
+        (List.map (renderMarker cfg map) locatedMarkersFiltered)
 
 
-marker : Config marker msg -> Map msg -> ( Location, marker ) -> Svg msg
-marker (Config config) map ( location, marker ) =
+renderMarker : Config marker msg -> Map msg -> ( Location, marker ) -> Svg msg
+renderMarker (Config cfg) map ( location, marker ) =
     let
         markerPoint =
             Map.locationToScreenPoint map location
@@ -85,22 +82,18 @@ marker (Config config) map ( location, marker ) =
                         { name, toDecoder } =
                             toEvent marker
                     in
-                    VirtualDom.onWithOptions name
-                        { stopPropagation = True
-                        , preventDefault = False
-                        }
-                        (toDecoder marker)
+                    VirtualDom.on name (VirtualDom.MayStopPropagation (toDecoder marker |> Json.Decode.map (\msg -> ( msg, True ))))
                 )
-                config.toEvents
+                cfg.toEvents
     in
     Svg.g
         (Svg.Attributes.transform
             ("translate("
-                ++ toString markerPoint.x
+                ++ String.fromFloat markerPoint.x
                 ++ " "
-                ++ toString markerPoint.y
+                ++ String.fromFloat markerPoint.y
                 ++ ")"
             )
             :: (Svg.Attributes.pointerEvents "auto" :: events)
         )
-        [ config.icon marker ]
+        [ cfg.icon marker ]

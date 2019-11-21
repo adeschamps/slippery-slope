@@ -1,4 +1,4 @@
-module SlippyMap.Update exposing (Msg, update)
+module SlippyMap.Update exposing (update, Msg)
 
 {-|
 
@@ -6,7 +6,7 @@ module SlippyMap.Update exposing (Msg, update)
 
 -}
 
-import Keyboard exposing (KeyCode)
+import Bandaid exposing (KeyCode)
 import SlippyMap.Config exposing (Config(..))
 import SlippyMap.Geo.Point exposing (Point)
 import SlippyMap.Map as Map exposing (Map)
@@ -142,7 +142,7 @@ updateDrag : Config msg -> DragMsg -> State -> State
 updateDrag config dragMsg state =
     let
         interaction =
-            State.interaction state
+            State.getInteraction state
     in
     State.withInteraction config <|
         case dragMsg of
@@ -179,6 +179,7 @@ updateDrag config dragMsg state =
                             Dragging { current, last } ->
                                 if xy == last then
                                     identity
+
                                 else
                                     let
                                         speed =
@@ -203,7 +204,7 @@ updatePinch : Config msg -> PinchMsg -> State -> State
 updatePinch config pinchMsg state =
     let
         interaction =
-            State.interaction state
+            State.getInteraction state
     in
     case pinchMsg of
         PinchStart touches ->

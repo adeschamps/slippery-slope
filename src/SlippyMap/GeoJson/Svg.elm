@@ -1,15 +1,4 @@
-module SlippyMap.GeoJson.Svg
-    exposing
-        ( Config
-        , config
-        , renderGeoJson
-        , renderGeoJsonGeometry
-        , renderGeoJsonLineString
-        , renderGeoJsonPoint
-        , renderGeoJsonPolygon
-        , withAttributes
-        , withPointRenderer
-        )
+module SlippyMap.GeoJson.Svg exposing (Config, config, withAttributes, withPointRenderer, renderGeoJson, renderGeoJsonPoint, renderGeoJsonLineString, renderGeoJsonPolygon, renderGeoJsonGeometry)
 
 {-| GeoJson SVG renderer.
 
@@ -46,14 +35,14 @@ config project =
 
 {-| -}
 withAttributes : (GeoJson.FeatureObject -> List (Svg.Attribute msg)) -> Config msg -> Config msg
-withAttributes attributes (Config config) =
-    Config { config | attributes = attributes }
+withAttributes attributes (Config cfg) =
+    Config { cfg | attributes = attributes }
 
 
 {-| -}
 withPointRenderer : (List (Svg.Attribute msg) -> Svg msg) -> Config msg -> Config msg
-withPointRenderer render (Config config) =
-    Config { config | renderPoint = render }
+withPointRenderer render (Config cfg) =
+    Config { cfg | renderPoint = render }
 
 
 defaultAttributes : GeoJson.FeatureObject -> List (Svg.Attribute msg)
@@ -76,62 +65,62 @@ circle attributes =
 
 {-| -}
 renderGeoJson : Config msg -> GeoJson -> Svg msg
-renderGeoJson config ( geoJsonObject, _ ) =
+renderGeoJson cfg ( geoJsonObject, _ ) =
     Svg.g []
-        (renderGeoJsonObject config geoJsonObject)
+        (renderGeoJsonObject cfg geoJsonObject)
 
 
 {-| -}
 renderGeoJsonObject : Config msg -> GeoJson.GeoJsonObject -> List (Svg msg)
-renderGeoJsonObject config geoJsonObject =
+renderGeoJsonObject cfg geoJsonObject =
     case geoJsonObject of
         GeoJson.Geometry geometry ->
             --renderGeoJsonGeometry config [] geometry
-            renderGeoJsonFeatureObject config
+            renderGeoJsonFeatureObject cfg
                 { id = Nothing
                 , properties = Json.null
                 , geometry = Just geometry
                 }
 
         GeoJson.Feature featureObject ->
-            renderGeoJsonFeatureObject config featureObject
+            renderGeoJsonFeatureObject cfg featureObject
 
         GeoJson.FeatureCollection featureCollection ->
-            List.concatMap (renderGeoJsonFeatureObject config) featureCollection
+            List.concatMap (renderGeoJsonFeatureObject cfg) featureCollection
 
 
 {-| -}
 renderGeoJsonFeatureObject : Config msg -> GeoJson.FeatureObject -> List (Svg msg)
-renderGeoJsonFeatureObject ((Config { attributes }) as config) featureObject =
-    Maybe.map (renderGeoJsonGeometry config (attributes featureObject ++ propertiesStyle featureObject))
+renderGeoJsonFeatureObject ((Config { attributes }) as cfg) featureObject =
+    Maybe.map (renderGeoJsonGeometry cfg (attributes featureObject ++ propertiesStyle featureObject))
         featureObject.geometry
         |> Maybe.withDefault []
 
 
 {-| -}
 renderGeoJsonGeometry : Config msg -> List (Svg.Attribute msg) -> GeoJson.Geometry -> List (Svg msg)
-renderGeoJsonGeometry config attributes geometry =
+renderGeoJsonGeometry cfg attributes geometry =
     case geometry of
         GeoJson.Point position ->
-            renderGeoJsonPoint config attributes position
+            renderGeoJsonPoint cfg attributes position
 
         GeoJson.MultiPoint positionList ->
-            List.concatMap (renderGeoJsonPoint config attributes) positionList
+            List.concatMap (renderGeoJsonPoint cfg attributes) positionList
 
         GeoJson.LineString positionList ->
-            renderGeoJsonLineString config attributes positionList
+            renderGeoJsonLineString cfg attributes positionList
 
         GeoJson.MultiLineString positionListList ->
-            renderGeoJsonMultiLineString config attributes positionListList
+            renderGeoJsonMultiLineString cfg attributes positionListList
 
         GeoJson.Polygon positionListList ->
-            renderGeoJsonPolygon config attributes positionListList
+            renderGeoJsonPolygon cfg attributes positionListList
 
         GeoJson.MultiPolygon positionListListList ->
-            List.concatMap (renderGeoJsonPolygon config attributes) positionListListList
+            List.concatMap (renderGeoJsonPolygon cfg attributes) positionListListList
 
         GeoJson.GeometryCollection geometryList ->
-            List.concatMap (renderGeoJsonGeometry config attributes) geometryList
+            List.concatMap (renderGeoJsonGeometry cfg attributes) geometryList
 
 
 {-| -}
@@ -144,9 +133,9 @@ renderGeoJsonPoint (Config internalConfig) attributes position =
     [ Svg.g
         [ Svg.Attributes.transform
             ("translate("
-                ++ toString x
+                ++ String.fromFloat x
                 ++ " "
-                ++ toString y
+                ++ String.fromFloat y
                 ++ ")"
             )
         ]
@@ -156,11 +145,11 @@ renderGeoJsonPoint (Config internalConfig) attributes position =
 
 {-| -}
 renderGeoJsonLineString : Config msg -> List (Svg.Attribute msg) -> List GeoJson.Position -> List (Svg msg)
-renderGeoJsonLineString config attributes positionList =
+renderGeoJsonLineString cfg attributes positionList =
     [ Svg.path
         (attributes
             ++ [ Svg.Attributes.fill "none"
-               , pathPoints config positionList
+               , pathPoints cfg positionList
                     |> Svg.Attributes.d
                ]
         )
@@ -170,12 +159,12 @@ renderGeoJsonLineString config attributes positionList =
 
 {-| -}
 renderGeoJsonMultiLineString : Config msg -> List (Svg.Attribute msg) -> List (List GeoJson.Position) -> List (Svg msg)
-renderGeoJsonMultiLineString config attributes positionListList =
+renderGeoJsonMultiLineString cfg attributes positionListList =
     [ Svg.path
         (attributes
             ++ [ Svg.Attributes.fill "none"
                , positionListList
-                    |> List.map (\positionList -> pathPoints config positionList)
+                    |> List.map (\positionList -> pathPoints cfg positionList)
                     |> String.join ""
                     |> Svg.Attributes.d
                ]
@@ -186,11 +175,11 @@ renderGeoJsonMultiLineString config attributes positionListList =
 
 {-| -}
 renderGeoJsonPolygon : Config msg -> List (Svg.Attribute msg) -> List (List GeoJson.Position) -> List (Svg msg)
-renderGeoJsonPolygon config attributes positionListList =
+renderGeoJsonPolygon cfg attributes positionListList =
     let
         pathDefinition =
             (positionListList
-                |> List.map (pathPoints config)
+                |> List.map (pathPoints cfg)
                 |> String.join ""
             )
                 ++ "Z"
@@ -210,7 +199,7 @@ pathPoints (Config internalConfig) positionList =
         |> List.map
             (\position ->
                 internalConfig.project position
-                    |> (\{ x, y } -> toString x ++ "," ++ toString y)
+                    |> (\{ x, y } -> String.fromFloat x ++ "," ++ String.fromFloat y)
             )
         |> String.join "L"
         |> (\ll -> "M" ++ ll)
@@ -227,10 +216,10 @@ propertiesStyle { properties } =
             [ -- Hm, title attributes won't work in SVG in general
               Maybe.map Svg.Attributes.title props.title
             , Maybe.map Svg.Attributes.stroke props.stroke
-            , Maybe.map (toString >> Svg.Attributes.strokeOpacity) props.strokeOpacity
-            , Maybe.map (toString >> Svg.Attributes.strokeWidth) props.strokeWidth
+            , Maybe.map (String.fromFloat >> Svg.Attributes.strokeOpacity) props.strokeOpacity
+            , Maybe.map (String.fromFloat >> Svg.Attributes.strokeWidth) props.strokeWidth
             , Maybe.map Svg.Attributes.fill props.fill
-            , Maybe.map (toString >> Svg.Attributes.fillOpacity) props.fillOpacity
+            , Maybe.map (String.fromFloat >> Svg.Attributes.fillOpacity) props.fillOpacity
             ]
                 |> List.filterMap identity
 

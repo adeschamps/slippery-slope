@@ -1,5 +1,6 @@
-module Interactive.Marker exposing (..)
+module Interactive.Marker exposing (Model, Msg(..), Poi, bounds, config, init, initialPois, main, selectionBounds, subscriptions, toggle, update, view, viewMap, viewPoi, viewPois)
 
+import Browser
 import Html exposing (Html)
 import Html.Attributes
 import Html.Events
@@ -32,10 +33,11 @@ type Msg
 
 init : ( Model, Cmd Msg )
 init =
-    { map = Map.around config (bounds initialPois)
-    , pois = initialPois
-    }
-        ! []
+    ( { map = Map.around config (bounds initialPois)
+      , pois = initialPois
+      }
+    , Cmd.none
+    )
 
 
 initialPois : List Poi
@@ -48,11 +50,8 @@ initialPois =
 
 bounds : List Poi -> Location.Bounds
 bounds pois =
-    case Location.maybeBounds (List.map .location pois) of
-        Just bounds ->
-            bounds
-
-        Nothing ->
+    Location.maybeBounds (List.map .location pois)
+        |> Maybe.withDefault
             { southWest = Location -11 35
             , northEast = Location 32 58
             }
@@ -100,6 +99,7 @@ toggle : String -> Poi -> Poi
 toggle name poi =
     if poi.name == name then
         { poi | selected = not poi.selected }
+
     else
         poi
 
@@ -118,8 +118,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     Html.div
-        [ Html.Attributes.style
-            [ ( "padding", "1.5rem" ) ]
+        [ Html.Attributes.style "padding" "1.5rem"
         ]
         [ Html.h1 []
             [ Html.text "List of Pois with different markers" ]
@@ -133,7 +132,7 @@ viewMap model =
     Map.view
         config
         model.map
-        [ Map.tileLayer "http://localhost:9000/styles/positron/{z}/{x}/{y}.png"
+        [ Map.tileLayer "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
             |> Map.withAttribution "© OpenMapTiles © OpenStreetMap contributors"
         , Marker.individualMarker .location
             (always Marker.icon)
@@ -154,21 +153,21 @@ viewPoi poi =
         background =
             if poi.selected then
                 "#ccc"
+
             else
                 "transparent"
     in
     Html.div
         [ Html.Events.onClick (ToggleSelected poi.name)
-        , Html.Attributes.style
-            [ ( "background", background ) ]
+        , Html.Attributes.style "background" background
         ]
         [ Html.text poi.name ]
 
 
-main : Program Never Model Msg
+main : Program () Model Msg
 main =
-    Html.program
-        { init = init
+    Browser.element
+        { init = \_ -> init
         , view = view
         , update = update
         , subscriptions = subscriptions

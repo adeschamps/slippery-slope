@@ -92,13 +92,13 @@ unproject =
 
 
 scale : Float -> Float
-scale zoom =
-    256 * 2 ^ zoom
+scale atZoom =
+    256 * 2 ^ atZoom
 
 
 zoom : Float -> Float
-zoom scale =
-    logBase e (scale / 256) / logBase e 2
+zoom atScale =
+    logBase e (atScale / 256) / logBase e 2
 
 
 {-|

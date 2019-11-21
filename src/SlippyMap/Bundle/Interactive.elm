@@ -1,23 +1,4 @@
-module SlippyMap.Bundle.Interactive
-    exposing
-        ( Config
-        , Layer
-        , Msg
-        , State
-        , around
-        , at
-        , config
-        , geoJsonLayer
-        , markerLayer
-        , on
-        , popupLayer
-        , subscriptions
-        , tileLayer
-        , update
-        , view
-        , viewWithEvents
-        , withAttribution
-        )
+module SlippyMap.Bundle.Interactive exposing (Config, config, State, at, around, Msg, update, view, viewWithEvents, subscriptions, Layer, tileLayer, markerLayer, geoJsonLayer, popupLayer, withAttribution, on)
 
 {-| A convenience module wrapping or re-exposing various specialised functions and types to quickly create a basic interactive map with a default configuration.
 
@@ -43,6 +24,7 @@ import SlippyMap.Subscriptions as Subscriptions
 import SlippyMap.Types exposing (Scene, Size)
 import SlippyMap.Update as Update
 import SlippyMap.View as View
+
 
 
 -- CONFIG
@@ -91,8 +73,8 @@ type alias Msg =
 
 {-| -}
 update : Config msg -> Msg -> State -> State
-update config msg state =
-    Update.update config msg state
+update cfg msg state =
+    Update.update cfg msg state
         |> Tuple.first
 
 
@@ -112,15 +94,15 @@ subscriptions =
 
 {-| -}
 view : Config msg -> State -> List (Layer msg) -> Html msg
-view config state layers =
-    View.view config state layers
+view cfg state layers =
+    View.view cfg state layers
         |> Tuple.first
 
 
 {-| -}
 viewWithEvents : Config msg -> State -> List (MapEvent msg) -> List (Layer msg) -> Html msg
-viewWithEvents config state events layers =
-    View.viewWithEvents config state events layers
+viewWithEvents cfg state events layers =
+    View.viewWithEvents cfg state events layers
         |> Tuple.first
 
 

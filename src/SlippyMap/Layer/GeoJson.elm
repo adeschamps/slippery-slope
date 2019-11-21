@@ -1,10 +1,4 @@
-module SlippyMap.Layer.GeoJson
-    exposing
-        ( Config
-        , defaultConfig
-        , layer
-        , styleConfig
-        )
+module SlippyMap.Layer.GeoJson exposing (Config, defaultConfig, styleConfig, layer)
 
 {-| A layer to render GeoJson.
 
@@ -19,6 +13,7 @@ import SlippyMap.Layer as Layer exposing (Layer)
 import SlippyMap.Map as Map exposing (Map)
 import Svg exposing (Svg)
 import Svg.Attributes
+
 
 
 -- CONFIG
@@ -67,7 +62,7 @@ layer config geoJson =
 
 
 render : Config msg -> GeoJson -> Map msg -> Svg msg
-render _ geoJson map =
+render (Config internalConfig) geoJson map =
     let
         size =
             Map.size map
@@ -76,13 +71,13 @@ render _ geoJson map =
             Map.locationToScreenPoint map (Location lon lat)
 
         renderConfig =
-            Render.config project
+            Render.config project |> Render.withAttributes internalConfig.style
     in
     Svg.svg
         [ -- Important for touch pinching
           Svg.Attributes.pointerEvents "none"
-        , Svg.Attributes.width (toString size.x)
-        , Svg.Attributes.height (toString size.y)
+        , Svg.Attributes.width (String.fromFloat size.x)
+        , Svg.Attributes.height (String.fromFloat size.y)
         , Svg.Attributes.style "position: absolute;"
         ]
         [ Render.renderGeoJson renderConfig geoJson ]

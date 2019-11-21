@@ -1,10 +1,4 @@
-module SlippyMap.Layer.Tile
-    exposing
-        ( Config
-        , config
-        , layer
-        , toUrl
-        )
+module SlippyMap.Layer.Tile exposing (Config, config, layer, toUrl)
 
 {-| Base tile layer.
 
@@ -42,8 +36,8 @@ config toData renderData =
 
 {-| -}
 layer : Config data msg -> Layer msg
-layer config =
-    Layer.custom (render config) Layer.base
+layer withConfig =
+    Layer.custom (render withConfig) Layer.base
 
 
 render : Config data msg -> Map msg -> Svg msg
@@ -67,22 +61,22 @@ render (Config { toData, renderData }) map =
         [ -- Important for touch pinching
           Svg.Attributes.pointerEvents "none"
         , Svg.Attributes.width
-            (toString size.x)
+            (String.fromFloat size.x)
         , Svg.Attributes.height
-            (toString size.y)
+            (String.fromFloat size.y)
         ]
         tilesRendered
 
 
 tile : (Tile -> Svg msg) -> Map msg -> Tile -> ( String, Svg msg )
-tile render map ({ z, x, y } as tile) =
+tile renderFn map ({ z, x, y } as theTile) =
     let
         key =
-            toString z
+            String.fromInt z
                 ++ "/"
-                ++ toString (x % (2 ^ z))
+                ++ String.fromInt (x |> modBy (2 ^ z))
                 ++ "/"
-                ++ toString (y % (2 ^ z))
+                ++ String.fromInt (y |> modBy (2 ^ z))
 
         scale =
             Map.scaleT map (toFloat z)
@@ -102,13 +96,13 @@ tile render map ({ z, x, y } as tile) =
         [ Svg.Attributes.class "tile"
         , Svg.Attributes.transform
             ("translate("
-                ++ toString point.x
+                ++ String.fromFloat point.x
                 ++ " "
-                ++ toString point.y
+                ++ String.fromFloat point.y
                 ++ ")"
             )
         ]
-        [ render tile ]
+        [ renderFn theTile ]
     )
 
 
@@ -117,20 +111,13 @@ tile render map ({ z, x, y } as tile) =
 toUrl : String -> List String -> Tile -> String
 toUrl urlTemplate subDomains { z, x, y } =
     urlTemplate
-        |> replace "{z}" (toString (max 0 z))
-        |> replace "{x}" (toString (x % (2 ^ z)))
-        |> replace "{y}" (toString (y % (2 ^ z)))
-        |> replace "{s}"
-            ((abs (x + y) % (max 1 <| List.length subDomains))
-                |> flip List.drop subDomains
+        |> String.replace "{z}" (String.fromInt (max 0 z))
+        |> String.replace "{x}" (String.fromInt (x |> modBy (2 ^ z)))
+        |> String.replace "{y}" (String.fromInt (y |> modBy (2 ^ z)))
+        -- NOTE: I think this is some sort of load balancing?
+        |> String.replace "{s}"
+            ((abs (x + y) |> modBy (max 1 <| List.length subDomains))
+                |> (\n -> List.drop n subDomains)
                 |> List.head
                 |> Maybe.withDefault ""
             )
-
-
-replace : String -> String -> String -> String
-replace search substitution string =
-    string
-        |> Regex.replace Regex.All
-            (Regex.regex (Regex.escape search))
-            (\_ -> substitution)

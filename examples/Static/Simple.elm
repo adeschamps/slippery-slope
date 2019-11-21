@@ -19,7 +19,7 @@ viewAt =
         { center = Location 0 0
         , zoom = 2
         }
-        [ Map.tileLayer "" ]
+        [ Map.tileLayer "https://tile.openstreetmap.org/{z}/{x}/{y}.png" ]
 
 
 viewAround : Html msg
@@ -28,4 +28,4 @@ viewAround =
         { southWest = Location 6 35
         , northEast = Location 19 48
         }
-        [ Map.tileLayer "" ]
+        [ Map.tileLayer "https://tile.openstreetmap.org/{z}/{x}/{y}.png" ]

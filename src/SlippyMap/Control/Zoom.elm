@@ -14,7 +14,7 @@ import SlippyMap.Config as Map
 import SlippyMap.Layer exposing (Layer)
 import SlippyMap.Layer.Control as Control
 import SlippyMap.Map as Map exposing (Map)
-import SlippyMap.Msg exposing (Msg(ZoomIn, ZoomOut))
+import SlippyMap.Msg as Msg exposing (Msg)
 import SlippyMap.State as Map
 import Svg
 import Svg.Attributes
@@ -35,8 +35,8 @@ config toMsg =
 
 {-| -}
 control : Config msg -> Layer msg
-control config =
-    Control.control Control.topLeft (render config)
+control cfg =
+    Control.control Control.topLeft (render cfg)
 
 
 {-| TODO: This also needs the general map config, or at least its min- and maxZoom
@@ -53,24 +53,29 @@ render (Config { toMsg }) map =
     Html.map toMsg <|
         Html.div []
             [ Html.button
-                [ Html.Attributes.style
+                (List.map (\( attr, value ) -> Html.Attributes.style attr value)
                     (buttonStyleProperties
                         ++ [ ( "top", "12px" )
                            , ( "border-radius", "2px 2px 0 0" )
                            ]
                     )
-                , Html.Attributes.disabled (currentZoom >= maxZoom)
-                , Html.Events.onWithOptions "touchend"
-                    { preventDefault = True
-                    , stopPropagation = True
-                    }
-                    (Json.Decode.succeed ZoomIn)
-                , Html.Events.onWithOptions "click"
-                    { preventDefault = True
-                    , stopPropagation = True
-                    }
-                    (Json.Decode.succeed ZoomIn)
-                ]
+                    ++ [ Html.Attributes.disabled (currentZoom >= maxZoom)
+                       , Html.Events.custom "touchend"
+                            (Json.Decode.succeed
+                                { message = Msg.ZoomIn
+                                , preventDefault = True
+                                , stopPropagation = True
+                                }
+                            )
+                       , Html.Events.custom "click"
+                            (Json.Decode.succeed
+                                { message = Msg.ZoomIn
+                                , preventDefault = True
+                                , stopPropagation = True
+                                }
+                            )
+                       ]
+                )
                 [ Svg.svg
                     [ Svg.Attributes.width "24"
                     , Svg.Attributes.height "24"
@@ -84,24 +89,29 @@ render (Config { toMsg }) map =
                     ]
                 ]
             , Html.button
-                [ Html.Attributes.style
+                (List.map (\( attr, value ) -> Html.Attributes.style attr value)
                     (buttonStyleProperties
                         ++ [ ( "top", "37px" )
                            , ( "border-radius", "0 0 2px 2px" )
                            ]
                     )
-                , Html.Attributes.disabled (currentZoom <= minZoom)
-                , Html.Events.onWithOptions "touchend"
-                    { preventDefault = True
-                    , stopPropagation = True
-                    }
-                    (Json.Decode.succeed ZoomOut)
-                , Html.Events.onWithOptions "click"
-                    { preventDefault = True
-                    , stopPropagation = True
-                    }
-                    (Json.Decode.succeed ZoomOut)
-                ]
+                    ++ [ Html.Attributes.disabled (currentZoom <= minZoom)
+                       , Html.Events.custom "touchend"
+                            (Json.Decode.succeed
+                                { message = Msg.ZoomOut
+                                , preventDefault = True
+                                , stopPropagation = True
+                                }
+                            )
+                       , Html.Events.custom "click"
+                            (Json.Decode.succeed
+                                { message = Msg.ZoomOut
+                                , preventDefault = True
+                                , stopPropagation = True
+                                }
+                            )
+                       ]
+                )
                 [ Svg.svg
                     [ Svg.Attributes.width "24"
                     , Svg.Attributes.height "24"
